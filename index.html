@@ -36,6 +36,7 @@
             padding: 0;
             box-sizing: border-box;
             outline: none;
+            -webkit-tap-highlight-color: transparent;
         }
 
         html {
@@ -350,9 +351,9 @@
         }
 
         .about-text p {
-            color: #e5e7eb; /* Slightly brighter for big text */
+            color: #e5e7eb;
             margin-bottom: 2.5rem;
-            font-size: 1.4rem; /* BIGGER TEXT SIZE */
+            font-size: 1.4rem;
             line-height: 1.9;
             font-weight: 300;
         }
@@ -411,7 +412,7 @@
             margin-bottom: 10px;
         }
 
-        /* --- PROJECT SLIDER (NEW) --- */
+        /* --- PROJECT SLIDER --- */
         .project-block {
             margin-bottom: 150px;
         }
@@ -445,20 +446,28 @@
             border-radius: 20px;
             overflow: hidden;
             box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            aspect-ratio: 16/9; /* Maintain cinematic aspect ratio */
+            aspect-ratio: 16/9;
             background: #111;
+            transform: translateZ(0);
+            touch-action: pan-y;
         }
 
         .slider-track {
             display: flex;
             height: 100%;
-            transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+            transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+            cursor: grab;
+        }
+        
+        .slider-track:active {
+            cursor: grabbing;
         }
 
         .slide {
             min-width: 100%;
             height: 100%;
             position: relative;
+            user-select: none;
         }
 
         .slide img {
@@ -466,15 +475,16 @@
             height: 100%;
             object-fit: cover;
             display: block;
+            pointer-events: none;
         }
 
         .slider-btn {
             position: absolute;
             top: 50%;
             transform: translateY(-50%);
-            background: rgba(0, 0, 0, 0.4);
+            background: rgba(0, 0, 0, 0.6);
             color: #fff;
-            border: 1px solid rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
             width: 50px;
             height: 50px;
             border-radius: 50%;
@@ -490,6 +500,7 @@
         .slider-btn:hover {
             background: var(--primary);
             border-color: var(--primary);
+            transform: translateY(-50%) scale(1.1);
         }
 
         .prev { right: 20px; }
@@ -658,9 +669,8 @@
             transform: translateY(-5px);
         }
 
-        /* Instagram specific hover */
         .social-btn.instagram:hover {
-            background: #E1306C; /* Instagram Brand Color */
+            background: #E1306C;
         }
 
         /* --- FOOTER --- */
@@ -698,6 +708,9 @@
             max-width: 90%;
             max-height: 90%;
             position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .lightbox-img {
@@ -705,6 +718,7 @@
             max-height: 85vh;
             border-radius: 5px;
             box-shadow: 0 0 50px rgba(0,0,0,0.5);
+            transition: transform 0.3s ease;
         }
 
         .close-lightbox {
@@ -716,12 +730,42 @@
             color: #fff;
             font-size: 2rem;
             cursor: pointer;
+            z-index: 1010;
         }
         
         .lang-en .close-lightbox {
             right: auto;
             left: 0;
         }
+
+        .lightbox-nav-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            transition: var(--transition);
+            z-index: 1010;
+        }
+
+        .lightbox-nav-btn:hover {
+            background: var(--primary);
+        }
+
+        .lb-prev { right: -60px; }
+        .lb-next { left: -60px; }
+
+        .lang-en .lb-prev { left: -60px; right: auto; }
+        .lang-en .lb-next { right: -60px; left: auto; }
 
         /* --- ANIMATION UTILS --- */
         .reveal {
@@ -741,6 +785,14 @@
             .about-grid { grid-template-columns: 1fr; }
             .masonry-grid { column-count: 2; }
             .about-text p { font-size: 1.2rem; }
+            .lb-prev, .lb-next {
+                position: fixed;
+                top: auto;
+                bottom: 30px;
+                transform: none;
+            }
+            .lb-prev { right: 20px; }
+            .lb-next { left: 20px; }
         }
 
         @media (max-width: 768px) {
@@ -750,6 +802,18 @@
             .section-title { font-size: 2.2rem; }
             .stats-grid { flex-direction: column; gap: 30px; }
             .about-text p { font-size: 1.1rem; }
+            .lightbox-content {
+                width: 100%;
+                padding: 0 10px;
+            }
+            .close-lightbox {
+                top: 20px;
+                right: 20px;
+            }
+            .lang-en .close-lightbox {
+                right: auto;
+                left: 20px;
+            }
         }
     </style>
 </head>
@@ -820,37 +884,30 @@
             <p class="section-subtitle reveal" data-i18n="skills_subtitle">أدوات وإبداع يلتقيان لتقديم أفضل النتائج</p>
             
             <div class="skills-grid">
-                <!-- Skill 1 -->
                 <div class="skill-card reveal">
                     <i class="fas fa-paint-brush skill-icon"></i>
                     <h3 data-i18n="skill_1">Adobe Photoshop</h3>
                 </div>
-                <!-- Skill 2 -->
                 <div class="skill-card reveal">
                     <i class="fas fa-hashtag skill-icon"></i>
                     <h3 data-i18n="skill_2">Social Media Design</h3>
                 </div>
-                <!-- Skill 4 -->
                 <div class="skill-card reveal">
                     <i class="fas fa-bullhorn skill-icon"></i>
                     <h3 data-i18n="skill_4">Marketing Campaigns</h3>
                 </div>
-                <!-- Skill 5 -->
                 <div class="skill-card reveal">
                     <i class="fas fa-robot skill-icon"></i>
                     <h3 data-i18n="skill_5">AI Image Generation</h3>
                 </div>
-                <!-- Skill 6 -->
                 <div class="skill-card reveal">
                     <i class="fas fa-lightbulb skill-icon"></i>
                     <h3 data-i18n="skill_6">Creative Content</h3>
                 </div>
-                <!-- Skill 7 -->
                 <div class="skill-card reveal">
                     <i class="fas fa-ad skill-icon"></i>
                     <h3 data-i18n="skill_7">Advertising Design</h3>
                 </div>
-                <!-- Skill 8 -->
                 <div class="skill-card reveal">
                     <i class="fas fa-book-open skill-icon"></i>
                     <h3 data-i18n="skill_8">Visual Storytelling</h3>
@@ -859,7 +916,7 @@
         </div>
     </section>
 
-    <!-- Projects Section (CASE STUDIES WITH SLIDERS) -->
+    <!-- Projects Section -->
     <section id="projects">
         <div class="container">
             <h2 class="section-title reveal" data-i18n="projects_title">أعمالي المميزة</h2>
@@ -872,14 +929,13 @@
                     <p class="project-description" data-i18n="proj1_desc">تم تصميم هذه الحملة الإعلانية على منصات التواصل الاجتماعي بهدف إبراز مفهوم الغذاء الصحي بطريقة عصرية وجذابة بصريًا.</p>
                 </div>
                 
-                <!-- SLIDER 1 -->
                 <div class="project-slider" id="slider-1">
                     <div class="slider-track">
                         <div class="slide">
-                            <img src="https://z-cdn-media.chatglm.cn/files/3ee92389-15f3-451a-8cbc-5426ed40a215.jpg?auth_key=1881720570-f01f59a7ca1d4bc8ab4c4d2e711f54bb-0-3511fc081923576c96489c4c3c4e2cd6" alt="Good Chef Meal" onclick="openLightbox(this.src)">
+                            <img src="https://z-cdn-media.chatglm.cn/files/3ee92389-15f3-451a-8cbc-5426ed40a215.jpg?auth_key=1881720570-f01f59a7ca1d4bc8ab4c4d2e711f54bb-0-3511fc081923576c96489c4c3c4e2cd6" alt="Good Chef Meal">
                         </div>
                         <div class="slide">
-                            <img src="https://z-cdn-media.chatglm.cn/files/4ffec03e-27b6-4d90-8fe0-af7f60796e56.jpg?auth_key=1881720570-d6799a5e7d76487c8c912af0ba3e95e8-0-851cf13bd92b2be6e22b63d5ddf9b65c" alt="Good Chef Tacos" onclick="openLightbox(this.src)">
+                            <img src="https://z-cdn-media.chatglm.cn/files/4ffec03e-27b6-4d90-8fe0-af7f60796e56.jpg?auth_key=1881720570-d6799a5e7d76487c8c912af0ba3e95e8-0-851cf13bd92b2be6e22b63d5ddf9b65c" alt="Good Chef Tacos">
                         </div>
                     </div>
                     <button class="slider-btn prev"><i class="fas fa-chevron-right"></i></button>
@@ -895,17 +951,16 @@
                     <p class="project-description" data-i18n="proj2_desc">تم تصميم هذه الحملة لمنصات التواصل الاجتماعي بهدف إبراز خدمات طب الأسنان بأسلوب حديث وجذاب.</p>
                 </div>
 
-                <!-- SLIDER 2 -->
                 <div class="project-slider" id="slider-2">
                     <div class="slider-track">
                         <div class="slide">
-                            <img src="https://z-cdn-media.chatglm.cn/files/590b99ff-9a96-46ee-a488-5888536c2487.jpg?auth_key=1881720570-0e977c65483f49de9b0438bc360fc1c6-0-19ea7b625b6b186aebe9c454190294e8" alt="Moogi Clinic Dental" onclick="openLightbox(this.src)">
+                            <img src="https://z-cdn-media.chatglm.cn/files/590b99ff-9a96-46ee-a488-5888536c2487.jpg?auth_key=1881720570-0e977c65483f49de9b0438bc360fc1c6-0-19ea7b625b6b186aebe9c454190294e8" alt="Moogi Clinic Dental">
                         </div>
                         <div class="slide">
-                            <img src="https://z-cdn-media.chatglm.cn/files/419e32b0-4a56-4458-9a39-55a2c4761e86.jpg?auth_key=1881720570-ec37a3d6c5de45f6ba3725e589282048-0-854d0a34c86cadec7523a5024a4d3402" alt="Moogi Clinic Model" onclick="openLightbox(this.src)">
+                            <img src="https://z-cdn-media.chatglm.cn/files/419e32b0-4a56-4458-9a39-55a2c4761e86.jpg?auth_key=1881720570-ec37a3d6c5de45f6ba3725e589282048-0-854d0a34c86cadec7523a5024a4d3402" alt="Moogi Clinic Model">
                         </div>
                         <div class="slide">
-                            <img src="https://z-cdn-media.chatglm.cn/files/09d84dfd-47fa-477c-9345-9f72183875f3.jpg?auth_key=1881720570-288a1b719f3241f78becfe9bcd36a872-0-01ede10c33dbc9b2a35d08460505fd73" alt="Moogi Clinic Braces" onclick="openLightbox(this.src)">
+                            <img src="https://z-cdn-media.chatglm.cn/files/09d84dfd-47fa-477c-9345-9f72183875f3.jpg?auth_key=1881720570-288a1b719f3241f78becfe9bcd36a872-0-01ede10c33dbc9b2a35d08460505fd73" alt="Moogi Clinic Braces">
                         </div>
                     </div>
                     <button class="slider-btn prev"><i class="fas fa-chevron-right"></i></button>
@@ -913,22 +968,26 @@
                 </div>
             </div>
 
-            <!-- Project 03: Logistics -->
+            <!-- Project 03: Talqat Shipping (UPDATED NAME) -->
             <div class="project-block reveal">
                 <div class="project-header">
-                    <h3 class="project-title" data-i18n="proj3_title">شركة الشحن والخدمات اللوجستية</h3>
+                    <!-- UPDATED TITLE -->
+                    <h3 class="project-title" data-i18n="proj3_title">طلقة شحن</h3>
                     <span class="project-subtitle" data-i18n="proj3_sub">بناء حضور لوجستي</span>
                     <p class="project-description" data-i18n="proj3_desc">تم تصميم هذه الحملة الإعلانية بهدف تعزيز حضور شركة الشحن رقميًا، مع التركيز على إبراز سرعة التوصيل وسهولة الوصول.</p>
                 </div>
 
-                <!-- SLIDER 3 (Single image, acts static) -->
                 <div class="project-slider" id="slider-3">
                     <div class="slider-track">
                         <div class="slide">
-                            <img src="https://z-cdn-media.chatglm.cn/files/8f40c2c7-d0b3-4a52-8265-40635ee3538c.jpg?auth_key=1881720570-621369a7b6814b44af6d6dbe7d39344b-0-008db53596f3bda08f266a253f40c4aa" alt="Logistics Map" onclick="openLightbox(this.src)">
+                            <img src="https://z-cdn-media.chatglm.cn/files/8f40c2c7-d0b3-4a52-8265-40635ee3538c.jpg?auth_key=1881720570-621369a7b6814b44af6d6dbe7d39344b-0-008db53596f3bda08f266a253f40c4aa" alt="Talqat Shipping Map">
+                        </div>
+                        <div class="slide">
+                            <img src="https://picsum.photos/seed/logistics2/800/450" alt="Talqat Shipping Truck">
                         </div>
                     </div>
-                    <!-- No buttons for single image -->
+                    <button class="slider-btn prev"><i class="fas fa-chevron-right"></i></button>
+                    <button class="slider-btn next"><i class="fas fa-chevron-left"></i></button>
                 </div>
             </div>
 
@@ -940,13 +999,17 @@
                     <p class="project-description" data-i18n="proj4_desc">مشروع يركز على إنشاء صور تسويقية لمقهى زين باستخدام أدوات الذكاء الاصطناعي مع الحفاظ على الهوية البصرية الخضراء للعلامة التجارية.</p>
                 </div>
 
-                <!-- SLIDER 4 (Single image) -->
                 <div class="project-slider" id="slider-4">
                     <div class="slider-track">
                         <div class="slide">
-                            <img src="https://z-cdn-media.chatglm.cn/files/448ad7fe-6f09-4ddb-9eb4-ce60ba9134d7.jpg?auth_key=1881720570-e1fe8183cff74dc2a83c7bbbc0d5a794-0-fb54fc9b4cea888f7c94835d1bfb6aa4" alt="Zeen Cafe Products" onclick="openLightbox(this.src)">
+                            <img src="https://z-cdn-media.chatglm.cn/files/448ad7fe-6f09-4ddb-9eb4-ce60ba9134d7.jpg?auth_key=1881720570-e1fe8183cff74dc2a83c7bbbc0d5a794-0-fb54fc9b4cea888f7c94835d1bfb6aa4" alt="Zeen Cafe Products">
+                        </div>
+                         <div class="slide">
+                            <img src="https://picsum.photos/seed/cafe2/800/450" alt="Zeen Cafe Interior">
                         </div>
                     </div>
+                    <button class="slider-btn prev"><i class="fas fa-chevron-right"></i></button>
+                    <button class="slider-btn next"><i class="fas fa-chevron-left"></i></button>
                 </div>
             </div>
 
@@ -1048,9 +1111,12 @@
     </footer>
 
     <!-- Lightbox Modal -->
-    <div class="lightbox" id="lightbox" onclick="closeLightbox(event)">
+    <div class="lightbox" id="lightbox">
+        <button class="close-lightbox" onclick="closeLightbox()">&times;</button>
+        <button class="lightbox-nav-btn lb-prev" onclick="changeLightboxImage(-1)"><i class="fas fa-chevron-right"></i></button>
+        <button class="lightbox-nav-btn lb-next" onclick="changeLightboxImage(1)"><i class="fas fa-chevron-left"></i></button>
+        
         <div class="lightbox-content">
-            <button class="close-lightbox" onclick="closeLightbox(event)">&times;</button>
             <img src="" alt="Full view" class="lightbox-img" id="lightbox-img">
         </div>
     </div>
@@ -1068,7 +1134,7 @@
             }, 1500);
         });
 
-        // --- 2. INFINITE SLIDESHOW LOGIC ---
+        // --- 2. INFINITE SLIDESHOW LOGIC WITH TOUCH SUPPORT ---
         class InfiniteSlider {
             constructor(containerId) {
                 this.container = document.getElementById(containerId);
@@ -1080,8 +1146,13 @@
                 this.currentIndex = 0;
                 this.slideCount = this.slides.length;
                 this.autoplayInterval = null;
+                
+                // Touch variables
+                this.startX = 0;
+                this.currentTranslate = 0;
+                this.prevTranslate = 0;
+                this.isDragging = false;
 
-                // If only 1 slide, disable controls
                 if (this.slideCount <= 1) {
                     if(this.prevBtn) this.prevBtn.style.display = 'none';
                     if(this.nextBtn) this.nextBtn.style.display = 'none';
@@ -1092,7 +1163,6 @@
             }
 
             init() {
-                // Event Listeners
                 this.nextBtn.addEventListener('click', () => {
                     this.stopAutoplay();
                     this.nextSlide();
@@ -1105,7 +1175,19 @@
                     this.startAutoplay();
                 });
 
-                // Start autoplay
+                this.container.addEventListener('touchstart', this.touchStart.bind(this));
+                this.container.addEventListener('touchend', this.touchEnd.bind(this));
+                this.container.addEventListener('touchmove', this.touchMove.bind(this));
+                this.container.addEventListener('contextmenu', e => e.preventDefault());
+
+                this.slides.forEach((slide, index) => {
+                    slide.addEventListener('click', () => {
+                        if(!this.isDragging) {
+                            openLightbox(this.container.id, index);
+                        }
+                    });
+                });
+
                 this.startAutoplay();
             }
 
@@ -1129,23 +1211,120 @@
             startAutoplay() {
                 this.autoplayInterval = setInterval(() => {
                     this.nextSlide();
-                }, 4000); // 4 seconds per slide
+                }, 4000); 
             }
 
             stopAutoplay() {
                 clearInterval(this.autoplayInterval);
             }
+
+            touchStart(event) {
+                this.startX = event.touches[0].clientX;
+                this.isDragging = true;
+                this.stopAutoplay();
+            }
+
+            touchMove(event) {
+                if (this.isDragging) {
+                    // Track movement if needed for drag effect
+                }
+            }
+
+            touchEnd(event) {
+                this.isDragging = false;
+                const endX = event.changedTouches[0].clientX;
+                const diff = endX - this.startX;
+
+                if (Math.abs(diff) > 50) {
+                    if (diff > 0) {
+                        this.prevSlide();
+                    } else {
+                        this.nextSlide();
+                    }
+                }
+                
+                this.startAutoplay();
+            }
         }
 
-        // Initialize Sliders when DOM is ready
+        let sliderInstances = [];
         document.addEventListener('DOMContentLoaded', () => {
-            const slider1 = new InfiniteSlider('slider-1');
-            const slider2 = new InfiniteSlider('slider-2');
-            const slider3 = new InfiniteSlider('slider-3');
-            const slider4 = new InfiniteSlider('slider-4');
+            sliderInstances.push(new InfiniteSlider('slider-1'));
+            sliderInstances.push(new InfiniteSlider('slider-2'));
+            sliderInstances.push(new InfiniteSlider('slider-3'));
+            sliderInstances.push(new InfiniteSlider('slider-4'));
         });
 
-        // --- 3. LANGUAGE SWITCHER ---
+        // --- 3. LIGHTBOX LOGIC (With Navigation) ---
+        let currentSliderId = null;
+        let currentLightboxIndex = 0;
+        let currentSliderInstance = null;
+
+        function openLightbox(sliderId, index) {
+            currentSliderId = sliderId;
+            currentLightboxIndex = index;
+            
+            currentSliderInstance = sliderInstances.find(s => s.container.id === sliderId);
+            
+            updateLightboxImage();
+            
+            const lightbox = document.getElementById('lightbox');
+            lightbox.classList.add('active');
+            document.body.style.overflow = 'hidden'; 
+        }
+
+        function closeLightbox() {
+            const lightbox = document.getElementById('lightbox');
+            lightbox.classList.remove('active');
+            document.body.style.overflow = '';
+            currentSliderInstance = null;
+        }
+
+        function updateLightboxImage() {
+            if (!currentSliderInstance) return;
+            
+            const slides = currentSliderInstance.slides;
+            const img = slides[currentLightboxIndex].querySelector('img');
+            const lightboxImg = document.getElementById('lightbox-img');
+            
+            lightboxImg.style.opacity = '0.5';
+            setTimeout(() => {
+                lightboxImg.src = img.src;
+                lightboxImg.style.opacity = '1';
+            }, 200);
+        }
+
+        function changeLightboxImage(direction) {
+            if (!currentSliderInstance) return;
+            
+            const count = currentSliderInstance.slideCount;
+            
+            if (direction === 1) {
+                currentLightboxIndex = (currentLightboxIndex + 1) % count;
+            } else {
+                currentLightboxIndex = (currentLightboxIndex - 1 + count) % count;
+            }
+            
+            updateLightboxImage();
+        }
+
+        document.getElementById('lightbox').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('lightbox') || e.target.classList.contains('lightbox-content')) {
+                closeLightbox();
+            }
+        });
+
+        document.addEventListener('keydown', (e) => {
+            const lightbox = document.getElementById('lightbox');
+            if (!lightbox.classList.contains('active')) return;
+
+            if (e.key === 'Escape') closeLightbox();
+            if (e.key === 'ArrowLeft') changeLightboxImage(1); 
+            if (e.key === 'ArrowRight') changeLightboxImage(-1);
+        });
+
+
+        // --- 4. LANGUAGE SWITCHER ---
         const translations = {
             ar: {
                 nav_home: "الرئيسية",
@@ -1176,7 +1355,7 @@
                 proj2_title: "موجي كلينك",
                 proj2_sub: "تعزيز الحضور الرقمي لعيادة أسنان",
                 proj2_desc: "تم تصميم هذه الحملة لمنصات التواصل الاجتماعي بهدف إبراز خدمات طب الأسنان بأسلوب حديث وجذاب.",
-                proj3_title: "شركة الشحن والخدمات اللوجستية",
+                proj3_title: "طلقة شحن", // UPDATED NAME HERE
                 proj3_sub: "بناء حضور لوجستي",
                 proj3_desc: "تم تصميم هذه الحملة الإعلانية بهدف تعزيز حضور شركة الشحن رقميًا، مع التركيز على إبراز سرعة التوصيل وسهولة الوصول.",
                 proj4_title: "مقهى زين",
@@ -1228,7 +1407,7 @@
                 proj2_title: "Moogi Clinic",
                 proj2_sub: "Enhancing the digital presence of a dental clinic",
                 proj2_desc: "Designed this campaign for social media to highlight dental services in a modern and attractive style.",
-                proj3_title: "Shipping & Logistics Company",
+                proj3_title: "Talqat Shipping", // UPDATED NAME HERE
                 proj3_sub: "Building a Logistics Presence",
                 proj3_desc: "Designed an advertising campaign for social media to enhance the company's digital presence, focusing on delivery speed and accessibility.",
                 proj4_title: "Zeen Cafe",
@@ -1282,7 +1461,7 @@
             });
         }
 
-        // --- 4. SCROLL ANIMATIONS ---
+        // --- 5. SCROLL ANIMATIONS ---
         const observerOptions = { threshold: 0.1 };
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
@@ -1314,7 +1493,7 @@
             updateCount();
         }
 
-        // --- 5. NAVBAR SCROLL EFFECT ---
+        // --- 6. NAVBAR SCROLL EFFECT ---
         window.addEventListener('scroll', () => {
             const header = document.querySelector('header');
             if (window.scrollY > 50) {
@@ -1324,54 +1503,36 @@
             }
         });
 
-        // --- 6. LIGHTBOX ---
-        function openLightbox(src) {
-            const lightbox = document.getElementById('lightbox');
-            const img = document.getElementById('lightbox-img');
-            img.src = src;
-            lightbox.classList.add('active');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeLightbox(e) {
-            if (e.target !== document.getElementById('lightbox-img')) {
-                const lightbox = document.getElementById('lightbox');
-                lightbox.classList.remove('active');
-                document.body.style.overflow = 'auto';
-            }
-        }
-
-        // --- 7. PARTICLES CANVAS ---
+        // --- 7. PARTICLES ANIMATION ---
         const canvas = document.getElementById('particles-canvas');
         const ctx = canvas.getContext('2d');
-        let particlesArray;
-
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-
-        window.addEventListener('resize', () => {
+        let particles = [];
+        
+        function resizeCanvas() {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
-            initParticles();
-        });
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
 
         class Particle {
             constructor() {
                 this.x = Math.random() * canvas.width;
                 this.y = Math.random() * canvas.height;
                 this.size = Math.random() * 2;
-                this.speedX = (Math.random() * 1.5) - 0.75;
-                this.speedY = (Math.random() * 1.5) - 0.75;
-                this.color = Math.random() > 0.5 ? '#8b5cf6' : '#3b82f6';
+                this.speedX = Math.random() * 1 - 0.5;
+                this.speedY = Math.random() * 1 - 0.5;
             }
             update() {
                 this.x += this.speedX;
                 this.y += this.speedY;
-                if (this.x > canvas.width || this.x < 0) this.speedX = -this.speedX;
-                if (this.y > canvas.height || this.y < 0) this.speedY = -this.speedY;
+                if (this.x > canvas.width) this.x = 0;
+                if (this.x < 0) this.x = canvas.width;
+                if (this.y > canvas.height) this.y = 0;
+                if (this.y < 0) this.y = canvas.height;
             }
             draw() {
-                ctx.fillStyle = this.color;
+                ctx.fillStyle = 'rgba(139, 92, 246, 0.3)';
                 ctx.beginPath();
                 ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
                 ctx.fill();
@@ -1379,31 +1540,17 @@
         }
 
         function initParticles() {
-            particlesArray = [];
+            particles = [];
             for (let i = 0; i < 50; i++) {
-                particlesArray.push(new Particle());
+                particles.push(new Particle());
             }
         }
 
         function animateParticles() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            for (let i = 0; i < particlesArray.length; i++) {
-                particlesArray[i].update();
-                particlesArray[i].draw();
-                
-                for (let j = i; j < particlesArray.length; j++) {
-                    const dx = particlesArray[i].x - particlesArray[j].x;
-                    const dy = particlesArray[i].y - particlesArray[j].y;
-                    const distance = Math.sqrt(dx * dx + dy * dy);
-                    if (distance < 150) {
-                        ctx.beginPath();
-                        ctx.strokeStyle = `rgba(139, 92, 246, ${1 - distance/150})`;
-                        ctx.lineWidth = 0.5;
-                        ctx.moveTo(particlesArray[i].x, particlesArray[i].y);
-                        ctx.lineTo(particlesArray[j].x, particlesArray[j].y);
-                        ctx.stroke();
-                    }
-                }
+            for (let i = 0; i < particles.length; i++) {
+                particles[i].update();
+                particles[i].draw();
             }
             requestAnimationFrame(animateParticles);
         }
@@ -1413,4 +1560,5 @@
 
     </script>
 </body>
+</html>
 </html>
